@@ -5,25 +5,41 @@ const   ONE_SECOND  = 1000,
         ONE_YEAR    = 31557600000;
 
 function strToTime(timeStr) {
-    const len = timeStr.length - 1;
-    const c = timeStr.charAt(len) || '';
-    let timeVar = c >= '0' && c <= '9' ? timeStr : timeStr.substr(0, len);
+    if (!/^[0-9myhds\s]+$/.test(timeStr)) {
+        return;
+    }
+    const arr = timeStr.replace(/\s+/g, '').split('');
+    let result = 0;
+    let buffer = '';
     const magic = {
         m: int => int * ONE_MINUTE,
         h: int => int * ONE_HOUR,
         d: int => int * ONE_DAY,
         s: int => int * ONE_SECOND,
-        y: int => int * ONE_YEAR
+        y: int => int * ONE_YEAR,
     };
-    timeVar = !!magic[c] ? magic[c](timeVar) : magic.s(timeVar);
-    return timeVar;
+    for (const c of arr) {
+        if (c >= '0' && c <= '9') {
+            buffer += c;
+            continue;
+        }
+        result += magic[c](buffer);
+        buffer = '';
+    }
+    if (!!buffer) {
+        result += magic['s'](buffer);
+    }
+    return result;
 };
 
 function timeToStr(restTime) {
+    if(!/^[0-9]+$/.test(restTime)) {
+        return;
+    }
     const times = [
-        { counter: 0, ending: 'y', value: ONE_YEAR },
-        { counter: 0, ending: 'd', value: ONE_DAY },
-        { counter: 0, ending: 'h', value: ONE_HOUR },
+        { counter: 0, ending: 'y', value: ONE_YEAR   },
+        { counter: 0, ending: 'd', value: ONE_DAY    },
+        { counter: 0, ending: 'h', value: ONE_HOUR   },
         { counter: 0, ending: 'm', value: ONE_MINUTE },
         { counter: 0, ending: 's', value: ONE_SECOND },
     ];
@@ -49,4 +65,4 @@ function timeToStr(restTime) {
 module.exports = {
     strToTime: strToTime,
     timeToStr: timeToStr,
-}
+};
